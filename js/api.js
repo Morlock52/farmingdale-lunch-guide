@@ -218,7 +218,9 @@ const Api = {
                     ];
 
                     return searchableFields.some(field => {
-                        if (typeof field !== 'string') return false;
+                        if (typeof field !== 'string') {
+                            return false;
+                        }
                         return field.toLowerCase().includes(normalizedQuery);
                     });
                 } catch (filterError) {

@@ -5,6 +5,12 @@ const UI = {
     // Cache for DOM element references
     elements: {},
 
+    // Lazy loading observer
+    imageObserver: null,
+
+    // Current modal restaurant
+    currentModalRestaurant: null,
+
     /**
      * Initializes UI by caching DOM element references
      * @returns {boolean} True if initialization successful
@@ -18,12 +24,29 @@ const UI = {
                 errorMessage: '#error-display .error-message',
                 retryBtn: '#retry-btn',
                 loading: '#loading',
-                categoryFilter: '#category-filter',
                 priceFilter: '#price-filter',
-                searchInput: '#search-input'
+                sortSelect: '#sort-select',
+                searchInput: '#search-input',
+                themeToggle: '#theme-toggle',
+                categoryTrigger: '#category-trigger',
+                categoryDropdown: '#category-dropdown',
+                modal: '#restaurant-modal',
+                modalOverlay: '#restaurant-modal .modal-overlay',
+                modalClose: '#restaurant-modal .modal-close',
+                modalImage: '#restaurant-modal .modal-image',
+                modalName: '#restaurant-modal .modal-name',
+                modalCategory: '#restaurant-modal .modal-category',
+                modalPrice: '#restaurant-modal .modal-price',
+                modalRating: '#restaurant-modal .modal-rating',
+                modalDescription: '#restaurant-modal .modal-description',
+                modalAddress: '#restaurant-modal .modal-address span',
+                modalDistance: '#restaurant-modal .modal-distance span',
+                modalPhone: '#restaurant-modal .modal-phone span',
+                modalHours: '#restaurant-modal .modal-hours span',
+                modalFavoriteBtn: '#restaurant-modal .modal-favorite-btn'
             };
 
-            let missingElements = [];
+            const missingElements = [];
 
             Object.entries(selectors).forEach(([key, selector]) => {
                 const element = Utils.getElement(selector);
@@ -47,11 +70,47 @@ const UI = {
                 return false;
             }
 
+            // Initialize lazy loading
+            this.initLazyLoading();
+
+            // Initialize Toast
+            Toast.init();
+
             return true;
 
         } catch (error) {
             console.error('UI.init: Initialization failed:', error.message);
             return false;
+        }
+    },
+
+    /**
+     * Initializes IntersectionObserver for lazy loading images
+     */
+    initLazyLoading() {
+        try {
+            if ('IntersectionObserver' in window) {
+                this.imageObserver = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const img = entry.target;
+                            if (img.dataset.src) {
+                                img.src = img.dataset.src;
+                                img.classList.add('loaded');
+                                this.imageObserver.unobserve(img);
+                            }
+                        }
+                    });
+                }, {
+                    rootMargin: '100px',
+                    threshold: 0.1
+                });
+                console.info('UI.initLazyLoading: IntersectionObserver initialized');
+            } else {
+                console.warn('UI.initLazyLoading: IntersectionObserver not supported');
+            }
+        } catch (error) {
+            console.error('UI.initLazyLoading: Failed to initialize:', error.message);
         }
     },
 
@@ -96,26 +155,23 @@ const UI = {
         try {
             if (!this.elements.errorDisplay || !this.elements.errorMessage) {
                 console.error('UI.showError: Error display elements not available');
-                // Fallback: alert the user
-                alert(message || 'An error occurred');
+                Toast.error(message || 'An error occurred');
                 return;
             }
 
-            // Sanitize message before displaying
             const safeMessage = Utils.escapeHtml(message || 'An unexpected error occurred');
 
             this.elements.errorMessage.textContent = safeMessage;
             this.elements.errorDisplay.classList.remove('hidden');
             this.hideLoading();
 
-            // Hide restaurants container when showing error
             if (this.elements.restaurantsContainer) {
                 this.elements.restaurantsContainer.classList.add('hidden');
             }
 
         } catch (error) {
             console.error('UI.showError: Failed to show error:', error.message);
-            alert(message || 'An error occurred');
+            Toast.error(message || 'An error occurred');
         }
     },
 
@@ -142,14 +198,12 @@ const UI = {
                 throw new Error('Restaurants container not found');
             }
 
-            // Validate input
             if (!Array.isArray(restaurants)) {
                 console.error('UI.renderRestaurants: Invalid restaurants data');
                 this.elements.restaurantsContainer.innerHTML = '<p class="error">Unable to display restaurants</p>';
                 return;
             }
 
-            // Clear container
             this.elements.restaurantsContainer.innerHTML = '';
 
             if (restaurants.length === 0) {
@@ -157,7 +211,6 @@ const UI = {
                 return;
             }
 
-            // Render each restaurant
             restaurants.forEach(restaurant => {
                 try {
                     const card = this.createRestaurantCard(restaurant);
@@ -176,13 +229,12 @@ const UI = {
     },
 
     /**
-     * Creates a restaurant card element
+     * Creates a restaurant card element with lazy loading
      * @param {Object} restaurant - Restaurant data object
      * @returns {HTMLElement|null} Restaurant card element
      */
     createRestaurantCard(restaurant) {
         try {
-            // Validate restaurant data
             const validation = Utils.validateRestaurant(restaurant);
             if (!validation.valid) {
                 console.warn('UI.createRestaurantCard: Invalid restaurant data:', validation.errors);
@@ -192,21 +244,27 @@ const UI = {
             const card = document.createElement('article');
             card.className = 'restaurant-card';
             card.dataset.id = restaurant.id;
+            card.setAttribute('tabindex', '0');
+            card.setAttribute('role', 'listitem');
+            card.setAttribute('aria-label', `${restaurant.name}, ${restaurant.category}, ${restaurant.price}`);
 
             const isFavorite = Storage.isFavorite(restaurant.id);
+            const placeholderSvg = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 180%22%3E%3Crect fill=%22%23ddd%22 width=%22400%22 height=%22180%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%2220%22%3ELoading...%3C/text%3E%3C/svg%3E';
 
-            // Use template with escaped values
             card.innerHTML = `
-                <img class="restaurant-image"
-                     src="${Utils.escapeHtml(restaurant.image || '')}"
+                <img class="restaurant-image lazy"
+                     src="${placeholderSvg}"
+                     data-src="${Utils.escapeHtml(restaurant.image || '')}"
                      alt="${Utils.escapeHtml(restaurant.name)}"
-                     onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 180%22><rect fill=%22%23ddd%22 width=%22400%22 height=%22180%22/><text x=%2250%%22 y=%2250%%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%2220%22>Image not available</text></svg>'">
+                     loading="lazy"
+                     onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 180%22%3E%3Crect fill=%22%23ddd%22 width=%22400%22 height=%22180%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%2220%22%3EImage not available%3C/text%3E%3C/svg%3E'">
                 <div class="restaurant-info">
                     <div class="restaurant-header">
                         <h3 class="restaurant-name">${Utils.escapeHtml(restaurant.name)}</h3>
                         <button class="favorite-btn ${isFavorite ? 'active' : ''}"
                                 data-id="${restaurant.id}"
-                                aria-label="${isFavorite ? 'Remove from favorites' : 'Add to favorites'}">
+                                aria-label="${isFavorite ? 'Remove from favorites' : 'Add to favorites'}"
+                                aria-pressed="${isFavorite}">
                             ${isFavorite ? '\u2665' : '\u2661'}
                         </button>
                     </div>
@@ -220,7 +278,16 @@ const UI = {
                 </div>
             `;
 
-            // Add event listener for favorite button
+            // Set up lazy loading for image
+            const img = card.querySelector('.restaurant-image');
+            if (img && this.imageObserver) {
+                this.imageObserver.observe(img);
+            } else if (img) {
+                img.src = img.dataset.src;
+                img.classList.add('loaded');
+            }
+
+            // Favorite button click
             const favoriteBtn = card.querySelector('.favorite-btn');
             if (favoriteBtn) {
                 favoriteBtn.addEventListener('click', (e) => {
@@ -229,11 +296,121 @@ const UI = {
                 });
             }
 
+            // Card click opens modal
+            card.addEventListener('click', () => {
+                this.openModal(restaurant);
+            });
+
+            // Keyboard navigation
+            card.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    this.openModal(restaurant);
+                }
+            });
+
             return card;
 
         } catch (error) {
             console.error('UI.createRestaurantCard: Failed to create card:', error.message);
             return null;
+        }
+    },
+
+    /**
+     * Opens the restaurant detail modal
+     * @param {Object} restaurant - Restaurant data
+     */
+    openModal(restaurant) {
+        try {
+            if (!this.elements.modal) {
+                console.error('UI.openModal: Modal element not found');
+                return;
+            }
+
+            this.currentModalRestaurant = restaurant;
+
+            if (this.elements.modalImage) {
+                this.elements.modalImage.src = restaurant.image || '';
+                this.elements.modalImage.alt = restaurant.name;
+            }
+            if (this.elements.modalName) {
+                this.elements.modalName.textContent = restaurant.name;
+            }
+            if (this.elements.modalCategory) {
+                this.elements.modalCategory.textContent = restaurant.category;
+            }
+            if (this.elements.modalPrice) {
+                this.elements.modalPrice.textContent = restaurant.price;
+            }
+            if (this.elements.modalRating) {
+                this.elements.modalRating.textContent = Utils.formatRating(restaurant.rating);
+            }
+            if (this.elements.modalDescription) {
+                this.elements.modalDescription.textContent = restaurant.description;
+            }
+            if (this.elements.modalAddress) {
+                this.elements.modalAddress.textContent = restaurant.address || 'N/A';
+            }
+            if (this.elements.modalDistance) {
+                this.elements.modalDistance.textContent = restaurant.distance || 'N/A';
+            }
+            if (this.elements.modalPhone) {
+                this.elements.modalPhone.textContent = restaurant.phone || 'N/A';
+            }
+            if (this.elements.modalHours) {
+                this.elements.modalHours.textContent = restaurant.hours || 'N/A';
+            }
+
+            const isFavorite = Storage.isFavorite(restaurant.id);
+            if (this.elements.modalFavoriteBtn) {
+                this.elements.modalFavoriteBtn.classList.toggle('active', isFavorite);
+                this.elements.modalFavoriteBtn.innerHTML = isFavorite
+                    ? '<span class="heart-icon">\u2665</span> Remove from Favorites'
+                    : '<span class="heart-icon">\u2661</span> Add to Favorites';
+            }
+
+            this.elements.modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+
+            if (this.elements.modalClose) {
+                this.elements.modalClose.focus();
+            }
+
+            this.elements.modal.addEventListener('keydown', this.handleModalKeydown.bind(this));
+
+        } catch (error) {
+            console.error('UI.openModal: Failed to open modal:', error.message);
+        }
+    },
+
+    /**
+     * Closes the restaurant detail modal
+     */
+    closeModal() {
+        try {
+            if (!this.elements.modal) {
+                return;
+            }
+
+            this.elements.modal.classList.add('hidden');
+            document.body.style.overflow = '';
+            this.currentModalRestaurant = null;
+
+            this.elements.modal.removeEventListener('keydown', this.handleModalKeydown.bind(this));
+
+        } catch (error) {
+            console.error('UI.closeModal: Failed to close modal:', error.message);
+        }
+    },
+
+    /**
+     * Handles keyboard events in modal
+     * @param {KeyboardEvent} e - Keyboard event
+     */
+    handleModalKeydown(e) {
+        if (e.key === 'Escape') {
+            this.closeModal();
         }
     },
 
@@ -250,12 +427,18 @@ const UI = {
             }
 
             const isFavorite = Storage.isFavorite(restaurantId);
-
             let success;
+
             if (isFavorite) {
                 success = Storage.removeFavorite(restaurantId);
+                if (success) {
+                    Toast.info('Removed from favorites');
+                }
             } else {
                 success = Storage.addFavorite(restaurantId);
+                if (success) {
+                    Toast.success('Added to favorites');
+                }
             }
 
             if (success && button) {
@@ -263,15 +446,71 @@ const UI = {
                 button.classList.toggle('active', nowFavorite);
                 button.innerHTML = nowFavorite ? '\u2665' : '\u2661';
                 button.setAttribute('aria-label', nowFavorite ? 'Remove from favorites' : 'Add to favorites');
+                button.setAttribute('aria-pressed', nowFavorite);
 
-                // Trigger favorites update
                 this.renderFavorites();
-            } else {
-                console.error('UI.handleFavoriteClick: Failed to update favorite status');
+            } else if (!success) {
+                Toast.error('Failed to update favorites');
             }
 
         } catch (error) {
             console.error('UI.handleFavoriteClick: Error handling favorite click:', error.message);
+            Toast.error('Failed to update favorites');
+        }
+    },
+
+    /**
+     * Handles modal favorite button click
+     */
+    handleModalFavoriteClick() {
+        try {
+            if (!this.currentModalRestaurant) {
+                return;
+            }
+
+            const restaurantId = this.currentModalRestaurant.id;
+            const isFavorite = Storage.isFavorite(restaurantId);
+            let success;
+
+            if (isFavorite) {
+                success = Storage.removeFavorite(restaurantId);
+                if (success) {
+                    Toast.info('Removed from favorites');
+                }
+            } else {
+                success = Storage.addFavorite(restaurantId);
+                if (success) {
+                    Toast.success('Added to favorites');
+                }
+            }
+
+            if (success) {
+                const nowFavorite = !isFavorite;
+
+                if (this.elements.modalFavoriteBtn) {
+                    this.elements.modalFavoriteBtn.classList.toggle('active', nowFavorite);
+                    this.elements.modalFavoriteBtn.innerHTML = nowFavorite
+                        ? '<span class="heart-icon">\u2665</span> Remove from Favorites'
+                        : '<span class="heart-icon">\u2661</span> Add to Favorites';
+                }
+
+                const card = Utils.getElement(`.restaurant-card[data-id="${restaurantId}"]`);
+                if (card) {
+                    const cardBtn = card.querySelector('.favorite-btn');
+                    if (cardBtn) {
+                        cardBtn.classList.toggle('active', nowFavorite);
+                        cardBtn.innerHTML = nowFavorite ? '\u2665' : '\u2661';
+                        cardBtn.setAttribute('aria-label', nowFavorite ? 'Remove from favorites' : 'Add to favorites');
+                        cardBtn.setAttribute('aria-pressed', nowFavorite);
+                    }
+                }
+
+                this.renderFavorites();
+            }
+
+        } catch (error) {
+            console.error('UI.handleModalFavoriteClick: Error:', error.message);
+            Toast.error('Failed to update favorites');
         }
     },
 
@@ -292,7 +531,6 @@ const UI = {
                 return;
             }
 
-            // Get restaurant data for favorites
             const favoriteRestaurants = [];
             favoriteIds.forEach(id => {
                 try {
@@ -318,7 +556,7 @@ const UI = {
                     item.className = 'favorite-item';
                     item.innerHTML = `
                         <span>${Utils.escapeHtml(restaurant.name)} - ${Utils.escapeHtml(restaurant.category)}</span>
-                        <button class="remove-favorite" data-id="${restaurant.id}" aria-label="Remove from favorites">
+                        <button class="remove-favorite" data-id="${restaurant.id}" aria-label="Remove ${Utils.escapeHtml(restaurant.name)} from favorites">
                             \u2715
                         </button>
                     `;
@@ -350,7 +588,8 @@ const UI = {
             const success = Storage.removeFavorite(restaurantId);
 
             if (success) {
-                // Update the main restaurant card if visible
+                Toast.info('Removed from favorites');
+
                 const card = Utils.getElement(`.restaurant-card[data-id="${restaurantId}"]`);
                 if (card) {
                     const favoriteBtn = card.querySelector('.favorite-btn');
@@ -358,23 +597,24 @@ const UI = {
                         favoriteBtn.classList.remove('active');
                         favoriteBtn.innerHTML = '\u2661';
                         favoriteBtn.setAttribute('aria-label', 'Add to favorites');
+                        favoriteBtn.setAttribute('aria-pressed', 'false');
                     }
                 }
 
-                // Re-render favorites
                 this.renderFavorites();
             } else {
-                console.error('UI.handleRemoveFavorite: Failed to remove favorite');
+                Toast.error('Failed to remove from favorites');
             }
 
         } catch (error) {
             console.error('UI.handleRemoveFavorite: Error removing favorite:', error.message);
+            Toast.error('Failed to remove from favorites');
         }
     },
 
     /**
-     * Updates filter dropdown value with error handling
-     * @param {string} elementKey - Key of the element in cached elements
+     * Updates filter dropdown value
+     * @param {string} elementKey - Key of the element
      * @param {string} value - Value to set
      */
     setFilterValue(elementKey, value) {
@@ -399,70 +639,232 @@ const UI = {
     },
 
     /**
-     * Gets filter values from UI with error handling
+     * Gets the selected categories from multi-select
+     * @returns {string[]} Array of selected category values
+     */
+    getSelectedCategories() {
+        try {
+            const checkboxes = Utils.getElements('#category-dropdown input[type="checkbox"]:checked');
+            const values = checkboxes.map(cb => cb.value);
+
+            if (values.includes('all')) {
+                return ['all'];
+            }
+
+            return values.length > 0 ? values : ['all'];
+        } catch (error) {
+            console.error('UI.getSelectedCategories: Error:', error.message);
+            return ['all'];
+        }
+    },
+
+    /**
+     * Updates category trigger text
+     */
+    updateCategoryTriggerText() {
+        try {
+            if (!this.elements.categoryTrigger) {
+                return;
+            }
+
+            const selected = this.getSelectedCategories();
+
+            if (selected.includes('all') || selected.length === 0) {
+                this.elements.categoryTrigger.textContent = 'All Categories';
+            } else if (selected.length === 1) {
+                const labels = {
+                    'pizza': 'Pizza',
+                    'deli': 'Deli',
+                    'asian': 'Asian',
+                    'fast-food': 'Fast Food',
+                    'cafe': 'Cafe'
+                };
+                this.elements.categoryTrigger.textContent = labels[selected[0]] || selected[0];
+            } else {
+                this.elements.categoryTrigger.textContent = `${selected.length} categories`;
+            }
+        } catch (error) {
+            console.error('UI.updateCategoryTriggerText: Error:', error.message);
+        }
+    },
+
+    /**
+     * Gets filter values from UI
      * @returns {Object} Object containing filter values
      */
     getFilterValues() {
         try {
             return {
-                category: this.elements.categoryFilter?.value || 'all',
+                categories: this.getSelectedCategories(),
                 price: this.elements.priceFilter?.value || 'all',
+                sort: this.elements.sortSelect?.value || 'rating',
                 search: this.elements.searchInput?.value || ''
             };
         } catch (error) {
             console.error('UI.getFilterValues: Failed to get filter values:', error.message);
-            return { category: 'all', price: 'all', search: '' };
+            return { categories: ['all'], price: 'all', sort: 'rating', search: '' };
         }
     },
 
     /**
-     * Binds event listeners to filter elements
-     * @param {Function} callback - Callback function to invoke on filter change
+     * Toggles dark mode
      */
-    bindFilterEvents(callback) {
+    toggleTheme() {
         try {
-            if (typeof callback !== 'function') {
+            const isDark = document.body.classList.toggle('dark-mode');
+            Storage.set(Constants.STORAGE_KEYS.THEME, isDark ? 'dark' : 'light');
+            Toast.info(isDark ? 'Dark mode enabled' : 'Light mode enabled');
+        } catch (error) {
+            console.error('UI.toggleTheme: Error:', error.message);
+        }
+    },
+
+    /**
+     * Loads saved theme preference
+     */
+    loadTheme() {
+        try {
+            const savedTheme = Storage.get(Constants.STORAGE_KEYS.THEME, 'light');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+            }
+        } catch (error) {
+            console.error('UI.loadTheme: Error:', error.message);
+        }
+    },
+
+    /**
+     * Binds all event listeners
+     * @param {Function} filterCallback - Callback for filter changes
+     */
+    bindFilterEvents(filterCallback) {
+        try {
+            if (typeof filterCallback !== 'function') {
                 console.error('UI.bindFilterEvents: Callback must be a function');
                 return;
             }
 
-            // Bind category filter
-            if (this.elements.categoryFilter) {
-                this.elements.categoryFilter.addEventListener('change', () => {
-                    try {
-                        callback();
-                    } catch (error) {
-                        console.error('UI.bindFilterEvents: Category filter callback error:', error);
-                    }
-                });
-            }
-
-            // Bind price filter
+            // Price filter
             if (this.elements.priceFilter) {
-                this.elements.priceFilter.addEventListener('change', () => {
-                    try {
-                        callback();
-                    } catch (error) {
-                        console.error('UI.bindFilterEvents: Price filter callback error:', error);
-                    }
-                });
+                this.elements.priceFilter.addEventListener('change', filterCallback);
             }
 
-            // Bind search input with debounce
-            if (this.elements.searchInput) {
-                const debouncedCallback = Utils.debounce(() => {
-                    try {
-                        callback();
-                    } catch (error) {
-                        console.error('UI.bindFilterEvents: Search callback error:', error);
-                    }
-                }, 300);
+            // Sort select
+            if (this.elements.sortSelect) {
+                this.elements.sortSelect.addEventListener('change', filterCallback);
+            }
 
+            // Search input with debounce
+            if (this.elements.searchInput) {
+                const debouncedCallback = Utils.debounce(filterCallback, 300);
                 this.elements.searchInput.addEventListener('input', debouncedCallback);
             }
 
+            // Multi-select category dropdown
+            this.setupCategoryDropdown(filterCallback);
+
+            // Theme toggle
+            if (this.elements.themeToggle) {
+                this.elements.themeToggle.addEventListener('click', () => this.toggleTheme());
+            }
+
+            // Modal events
+            this.setupModalEvents();
+
         } catch (error) {
-            console.error('UI.bindFilterEvents: Failed to bind filter events:', error.message);
+            console.error('UI.bindFilterEvents: Failed to bind events:', error.message);
+        }
+    },
+
+    /**
+     * Sets up category dropdown behavior
+     * @param {Function} filterCallback - Filter callback
+     */
+    setupCategoryDropdown(filterCallback) {
+        try {
+            const trigger = this.elements.categoryTrigger;
+            const dropdown = this.elements.categoryDropdown;
+
+            if (!trigger || !dropdown) {
+                return;
+            }
+
+            trigger.addEventListener('click', () => {
+                const isExpanded = trigger.getAttribute('aria-expanded') === 'true';
+                trigger.setAttribute('aria-expanded', !isExpanded);
+                dropdown.classList.toggle('hidden');
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('#category-container')) {
+                    trigger.setAttribute('aria-expanded', 'false');
+                    dropdown.classList.add('hidden');
+                }
+            });
+
+            const checkboxes = dropdown.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', (e) => {
+                    const value = e.target.value;
+
+                    if (value === 'all' && e.target.checked) {
+                        checkboxes.forEach(cb => {
+                            if (cb.value !== 'all') {
+                                cb.checked = false;
+                            }
+                        });
+                    } else if (value !== 'all' && e.target.checked) {
+                        const allCheckbox = dropdown.querySelector('input[value="all"]');
+                        if (allCheckbox) {
+                            allCheckbox.checked = false;
+                        }
+                    }
+
+                    const anyChecked = Array.from(checkboxes).some(cb => cb.checked && cb.value !== 'all');
+                    if (!anyChecked) {
+                        const allCheckbox = dropdown.querySelector('input[value="all"]');
+                        if (allCheckbox) {
+                            allCheckbox.checked = true;
+                        }
+                    }
+
+                    this.updateCategoryTriggerText();
+                    filterCallback();
+                });
+            });
+
+            dropdown.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    trigger.setAttribute('aria-expanded', 'false');
+                    dropdown.classList.add('hidden');
+                    trigger.focus();
+                }
+            });
+
+        } catch (error) {
+            console.error('UI.setupCategoryDropdown: Error:', error.message);
+        }
+    },
+
+    /**
+     * Sets up modal event listeners
+     */
+    setupModalEvents() {
+        try {
+            if (this.elements.modalClose) {
+                this.elements.modalClose.addEventListener('click', () => this.closeModal());
+            }
+
+            if (this.elements.modalOverlay) {
+                this.elements.modalOverlay.addEventListener('click', () => this.closeModal());
+            }
+
+            if (this.elements.modalFavoriteBtn) {
+                this.elements.modalFavoriteBtn.addEventListener('click', () => this.handleModalFavoriteClick());
+            }
+
+        } catch (error) {
+            console.error('UI.setupModalEvents: Error:', error.message);
         }
     },
 
@@ -492,5 +894,3 @@ const UI = {
         }
     }
 };
-
-// Don't freeze UI as it maintains mutable state (elements cache)
