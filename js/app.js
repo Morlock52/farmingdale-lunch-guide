@@ -39,6 +39,9 @@ const App = {
                 throw new Error('Failed to initialize UI components');
             }
 
+            // Load saved theme
+            UI.loadTheme();
+
             // Bind event handlers
             this.bindEventHandlers();
 
@@ -47,6 +50,9 @@ const App = {
 
             // Load restaurant data
             await this.loadRestaurants();
+
+            // Register service worker
+            this.registerServiceWorker();
 
             // Mark as initialized
             this.state.isInitialized = true;
@@ -59,6 +65,21 @@ const App = {
             this.state.lastError = error;
             UI.showError('Failed to initialize the application. Please refresh the page.');
             return false;
+        }
+    },
+
+    /**
+     * Registers the service worker for offline support
+     */
+    registerServiceWorker() {
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+                .then(registration => {
+                    console.info('App.registerServiceWorker: Service worker registered:', registration.scope);
+                })
+                .catch(error => {
+                    console.warn('App.registerServiceWorker: Service worker registration failed:', error);
+                });
         }
     },
 
@@ -90,13 +111,11 @@ const App = {
             // Bind global error handler
             window.addEventListener('error', (event) => {
                 console.error('App: Global error caught:', event.error);
-                // Don't show error UI for minor errors
             });
 
             // Bind unhandled promise rejection handler
             window.addEventListener('unhandledrejection', (event) => {
                 console.error('App: Unhandled promise rejection:', event.reason);
-                // Prevent default browser handling
                 event.preventDefault();
             });
 
@@ -114,19 +133,18 @@ const App = {
         try {
             const preferences = Storage.getPreferences();
 
-            if (preferences.categoryFilter) {
-                UI.setFilterValue('categoryFilter', preferences.categoryFilter);
-            }
-
             if (preferences.priceFilter) {
                 UI.setFilterValue('priceFilter', preferences.priceFilter);
+            }
+
+            if (preferences.sortBy) {
+                UI.setFilterValue('sortSelect', preferences.sortBy);
             }
 
             console.info('App.loadPreferences: Preferences loaded');
 
         } catch (error) {
             console.warn('App.loadPreferences: Failed to load preferences:', error);
-            // Non-critical error, continue without preferences
         }
     },
 
@@ -137,12 +155,11 @@ const App = {
         try {
             const filters = UI.getFilterValues();
             Storage.setPreferences({
-                categoryFilter: filters.category,
-                priceFilter: filters.price
+                priceFilter: filters.price,
+                sortBy: filters.sort
             });
         } catch (error) {
             console.warn('App.savePreferences: Failed to save preferences:', error);
-            // Non-critical error, continue without saving
         }
     },
 
@@ -209,7 +226,7 @@ const App = {
     },
 
     /**
-     * Applies all filters to the restaurant data
+     * Applies all filters and sorting to the restaurant data
      */
     applyFilters() {
         try {
@@ -224,9 +241,9 @@ const App = {
 
             let filtered = [...this.state.restaurants];
 
-            // Apply category filter
-            if (filters.category && filters.category !== 'all') {
-                filtered = Api.filterByCategory(filters.category, filtered);
+            // Apply multi-category filter
+            if (filters.categories && !filters.categories.includes('all')) {
+                filtered = this.filterByMultipleCategories(filters.categories, filtered);
             }
 
             // Apply price filter
@@ -237,6 +254,11 @@ const App = {
             // Apply search filter
             if (filters.search && filters.search.trim() !== '') {
                 filtered = Api.searchRestaurants(filters.search, filtered);
+            }
+
+            // Apply sorting
+            if (filters.sort) {
+                filtered = this.sortRestaurants(filtered, filters.sort);
             }
 
             this.state.filteredRestaurants = filtered;
@@ -251,8 +273,88 @@ const App = {
 
         } catch (error) {
             console.error('App.applyFilters: Filter application failed:', error);
-            // Show all restaurants as fallback
             UI.renderRestaurants(this.state.restaurants);
+        }
+    },
+
+    /**
+     * Filters restaurants by multiple categories
+     * @param {string[]} categories - Array of category values
+     * @param {Object[]} restaurants - Array of restaurants
+     * @returns {Object[]} Filtered restaurants
+     */
+    filterByMultipleCategories(categories, restaurants) {
+        try {
+            if (!Array.isArray(categories) || categories.length === 0) {
+                return restaurants;
+            }
+
+            return restaurants.filter(restaurant => {
+                const restaurantCategory = restaurant.category?.toLowerCase();
+                return categories.some(cat => cat.toLowerCase() === restaurantCategory);
+            });
+        } catch (error) {
+            console.error('App.filterByMultipleCategories: Error:', error);
+            return restaurants;
+        }
+    },
+
+    /**
+     * Sorts restaurants by specified criteria
+     * @param {Object[]} restaurants - Array of restaurants
+     * @param {string} sortBy - Sort criteria
+     * @returns {Object[]} Sorted restaurants
+     */
+    sortRestaurants(restaurants, sortBy) {
+        try {
+            const sorted = [...restaurants];
+
+            switch (sortBy) {
+            case 'rating':
+                sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+                break;
+
+            case 'distance':
+                sorted.sort((a, b) => {
+                    const distA = parseFloat(a.distance) || 999;
+                    const distB = parseFloat(b.distance) || 999;
+                    return distA - distB;
+                });
+                break;
+
+            case 'price-low':
+                sorted.sort((a, b) => {
+                    const priceA = (a.price || '').length;
+                    const priceB = (b.price || '').length;
+                    return priceA - priceB;
+                });
+                break;
+
+            case 'price-high':
+                sorted.sort((a, b) => {
+                    const priceA = (a.price || '').length;
+                    const priceB = (b.price || '').length;
+                    return priceB - priceA;
+                });
+                break;
+
+            case 'name':
+                sorted.sort((a, b) => {
+                    const nameA = (a.name || '').toLowerCase();
+                    const nameB = (b.name || '').toLowerCase();
+                    return nameA.localeCompare(nameB);
+                });
+                break;
+
+            default:
+                // Default: sort by rating
+                sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+            }
+
+            return sorted;
+        } catch (error) {
+            console.error('App.sortRestaurants: Error sorting:', error);
+            return restaurants;
         }
     },
 
@@ -275,7 +377,7 @@ const App = {
                 return null;
             }
 
-            return { ...restaurant }; // Return copy
+            return { ...restaurant };
 
         } catch (error) {
             console.error('App.getRestaurantById: Error finding restaurant:', error);
@@ -337,7 +439,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Also handle case where script loads after DOMContentLoaded
 if (document.readyState !== 'loading') {
-    // Small delay to ensure all scripts are loaded
     setTimeout(() => {
         if (!App.state.isInitialized) {
             App.init().catch(error => {

@@ -1,0 +1,41 @@
+{
+  "name": "farmingdale-lunch-guide",
+  "version": "1.0.0",
+  "description": "A web-based restaurant discovery application for Farmingdale State College students",
+  "main": "js/app.js",
+  "scripts": {
+    "start": "npx serve .",
+    "lint": "eslint js/**/*.js",
+    "lint:fix": "eslint js/**/*.js --fix",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui"
+  },
+  "keywords": [
+    "restaurant",
+    "lunch",
+    "farmingdale",
+    "college",
+    "food",
+    "guide"
+  ],
+  "author": "Farmingdale Lunch Guide Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "@types/jest": "^29.5.11",
+    "eslint": "^8.56.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "serve": "^14.2.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/farmingdale/lunch-guide"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

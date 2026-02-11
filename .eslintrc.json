@@ -1,0 +1,39 @@
+{
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "jest": true
+  },
+  "extends": "eslint:recommended",
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "script"
+  },
+  "globals": {
+    "Constants": "writable",
+    "Utils": "writable",
+    "Storage": "writable",
+    "Api": "writable",
+    "UI": "writable",
+    "App": "writable",
+    "Toast": "writable",
+    "RESTAURANT_DATA": "writable"
+  },
+  "rules": {
+    "no-redeclare": ["error", { "builtinGlobals": false }],
+    "indent": ["error", 4],
+    "linebreak-style": ["error", "unix"],
+    "quotes": ["error", "single", { "avoidEscape": true }],
+    "semi": ["error", "always"],
+    "no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+    "no-console": "off",
+    "eqeqeq": ["error", "always"],
+    "curly": ["error", "all"],
+    "brace-style": ["error", "1tbs"],
+    "comma-dangle": ["error", "never"],
+    "no-trailing-spaces": "error",
+    "no-multiple-empty-lines": ["error", { "max": 2 }],
+    "prefer-const": "warn",
+    "no-var": "error"
+  }
+}
