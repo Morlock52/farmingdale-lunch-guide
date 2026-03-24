@@ -17,7 +17,12 @@ const Constants = {
         FAVORITES: 'farmingdale_lunch_favorites',
         PREFERENCES: 'farmingdale_lunch_preferences',
         CACHE_TIMESTAMP: 'farmingdale_lunch_cache_time',
-        THEME: 'farmingdale_lunch_theme'
+        THEME: 'farmingdale_lunch_theme',
+        RECENT_SEARCHES: 'farmingdale_lunch_recent_searches',
+        NOTES: 'farmingdale_lunch_notes',
+        VISITS: 'farmingdale_lunch_visits',
+        FAVORITES_ORDER: 'farmingdale_lunch_favorites_order',
+        DEFAULT_VIEW: 'farmingdale_lunch_default_view'
     },
 
     // UI Configuration
@@ -25,7 +30,12 @@ const Constants = {
         DEBOUNCE_DELAY: 300,
         TOAST_DURATION: 3000,
         ANIMATION_DURATION: 300,
-        LAZY_LOAD_THRESHOLD: '100px'
+        LAZY_LOAD_THRESHOLD: '100px',
+        MAX_RECENT_SEARCHES: 5,
+        PAGE_SIZE: 6,
+        BACK_TO_TOP_THRESHOLD: 300,
+        MAX_COMPARE: 3,
+        WALKING_SPEED_MPH: 3
     },
 
     // Filter Options
@@ -50,6 +60,13 @@ const Constants = {
             { value: 'price-low', label: 'Price: Low to High' },
             { value: 'price-high', label: 'Price: High to Low' },
             { value: 'name', label: 'Name (A-Z)' }
+        ],
+        DIETARY_OPTIONS: [
+            { value: 'all', label: 'All Dietary' },
+            { value: 'vegetarian', label: 'Vegetarian' },
+            { value: 'vegan', label: 'Vegan' },
+            { value: 'halal', label: 'Halal' },
+            { value: 'gluten-free', label: 'Gluten-Free' }
         ]
     },
 

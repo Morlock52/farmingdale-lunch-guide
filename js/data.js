@@ -12,7 +12,23 @@ const RESTAURANT_DATA = [
         distance: '0.2 miles',
         description: 'Classic NY-style pizza right on campus. Great for a quick slice between classes.',
         image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400',
-        address: '123 Broadhollow Rd, Farmingdale, NY'
+        address: '123 Broadhollow Rd, Farmingdale, NY',
+        phone: '(516) 555-0101',
+        hours: 'Mon-Sat 10am-10pm, Sun 11am-9pm',
+        dietaryTags: ['vegetarian'],
+        menuHighlights: [
+            { name: 'NY Cheese Slice', price: '$3.50' },
+            { name: 'Pepperoni Pie', price: '$14.99' },
+            { name: 'Garlic Knots (6)', price: '$4.99' }
+        ],
+        schedule: { open: '10:00', close: '22:00', days: 'Mon-Sat' },
+        lat: 40.7326,
+        lng: -73.4454,
+        photos: [
+            'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400',
+            'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400',
+            'https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?w=400'
+        ]
     },
     {
         id: 2,
@@ -23,7 +39,23 @@ const RESTAURANT_DATA = [
         distance: '0.5 miles',
         description: 'Authentic Chinese cuisine with generous portions. Lunch specials available daily.',
         image: 'https://images.unsplash.com/photo-1563245372-f21724e3856d?w=400',
-        address: '456 Route 110, Farmingdale, NY'
+        address: '456 Route 110, Farmingdale, NY',
+        phone: '(516) 555-0102',
+        hours: 'Mon-Sun 11am-10pm',
+        dietaryTags: ['vegetarian', 'vegan'],
+        menuHighlights: [
+            { name: 'General Tso Chicken', price: '$12.99' },
+            { name: 'Veggie Lo Mein', price: '$10.99' },
+            { name: 'Wonton Soup', price: '$5.99' }
+        ],
+        schedule: { open: '11:00', close: '22:00', days: 'Mon-Sun' },
+        lat: 40.7295,
+        lng: -73.4410,
+        photos: [
+            'https://images.unsplash.com/photo-1563245372-f21724e3856d?w=400',
+            'https://images.unsplash.com/photo-1525755662778-989d0524087e?w=400',
+            'https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?w=400'
+        ]
     },
     {
         id: 3,
@@ -34,7 +66,23 @@ const RESTAURANT_DATA = [
         distance: '0.3 miles',
         description: 'Best sandwiches in town! Fresh ingredients and huge portions.',
         image: 'https://images.unsplash.com/photo-1509722747041-616f39b57569?w=400',
-        address: '789 Main St, Farmingdale, NY'
+        address: '789 Main St, Farmingdale, NY',
+        phone: '(516) 555-0103',
+        hours: 'Mon-Fri 7am-6pm, Sat 8am-4pm',
+        dietaryTags: ['vegetarian', 'gluten-free'],
+        menuHighlights: [
+            { name: 'Turkey Club', price: '$9.99' },
+            { name: 'Italian Hero', price: '$10.99' },
+            { name: 'Chicken Caesar Wrap', price: '$8.99' }
+        ],
+        schedule: { open: '07:00', close: '18:00', days: 'Mon-Fri' },
+        lat: 40.7320,
+        lng: -73.4430,
+        photos: [
+            'https://images.unsplash.com/photo-1509722747041-616f39b57569?w=400',
+            'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=400',
+            'https://images.unsplash.com/photo-1553909489-cd47e0907980?w=400'
+        ]
     },
     {
         id: 4,
@@ -45,7 +93,23 @@ const RESTAURANT_DATA = [
         distance: '0.8 miles',
         description: 'Fresh sushi rolls and bento boxes. Perfect for a healthier lunch option.',
         image: 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=400',
-        address: '321 Conklin St, Farmingdale, NY'
+        address: '321 Conklin St, Farmingdale, NY',
+        phone: '(516) 555-0104',
+        hours: 'Mon-Sat 11:30am-9:30pm',
+        dietaryTags: ['gluten-free'],
+        menuHighlights: [
+            { name: 'Spicy Tuna Roll', price: '$8.99' },
+            { name: 'Bento Box Combo', price: '$14.99' },
+            { name: 'Edamame', price: '$4.99' }
+        ],
+        schedule: { open: '11:30', close: '21:30', days: 'Mon-Sat' },
+        lat: 40.7280,
+        lng: -73.4380,
+        photos: [
+            'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=400',
+            'https://images.unsplash.com/photo-1553621042-f6e147245754?w=400',
+            'https://images.unsplash.com/photo-1617196034796-73dfa7b1fd56?w=400'
+        ]
     },
     {
         id: 5,
@@ -56,7 +120,23 @@ const RESTAURANT_DATA = [
         distance: '0.4 miles',
         description: 'Juicy burgers and crispy fries. A student favorite for years.',
         image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400',
-        address: '555 Melville Rd, Farmingdale, NY'
+        address: '555 Melville Rd, Farmingdale, NY',
+        phone: '(516) 555-0105',
+        hours: 'Mon-Sun 10am-11pm',
+        dietaryTags: ['gluten-free'],
+        menuHighlights: [
+            { name: 'Classic Cheeseburger', price: '$7.99' },
+            { name: 'Bacon BBQ Burger', price: '$9.99' },
+            { name: 'Loaded Fries', price: '$5.99' }
+        ],
+        schedule: { open: '10:00', close: '23:00', days: 'Mon-Sun' },
+        lat: 40.7310,
+        lng: -73.4420,
+        photos: [
+            'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400',
+            'https://images.unsplash.com/photo-1550547660-d9450f859349?w=400',
+            'https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=400'
+        ]
     },
     {
         id: 6,
@@ -67,7 +147,23 @@ const RESTAURANT_DATA = [
         distance: '0.1 miles',
         description: 'Coffee, pastries, and light lunches. Great WiFi and study atmosphere.',
         image: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400',
-        address: '100 Campus Dr, Farmingdale, NY'
+        address: '100 Campus Dr, Farmingdale, NY',
+        phone: '(516) 555-0106',
+        hours: 'Mon-Fri 7am-9pm, Sat-Sun 8am-7pm',
+        dietaryTags: ['vegetarian', 'vegan', 'gluten-free'],
+        menuHighlights: [
+            { name: 'Avocado Toast', price: '$8.99' },
+            { name: 'Cappuccino', price: '$4.50' },
+            { name: 'Grilled Panini', price: '$9.99' }
+        ],
+        schedule: { open: '07:00', close: '21:00', days: 'Mon-Fri' },
+        lat: 40.7335,
+        lng: -73.4460,
+        photos: [
+            'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400',
+            'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=400',
+            'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=400'
+        ]
     },
     {
         id: 7,
@@ -78,7 +174,23 @@ const RESTAURANT_DATA = [
         distance: '0.6 miles',
         description: 'Authentic Italian pizza baked in a wood-fired oven. Worth the walk!',
         image: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400',
-        address: '200 Fulton St, Farmingdale, NY'
+        address: '200 Fulton St, Farmingdale, NY',
+        phone: '(516) 555-0107',
+        hours: 'Tue-Sun 11am-10pm',
+        dietaryTags: ['vegetarian'],
+        menuHighlights: [
+            { name: 'Margherita Pizza', price: '$16.99' },
+            { name: 'Calzone', price: '$12.99' },
+            { name: 'Tiramisu', price: '$7.99' }
+        ],
+        schedule: { open: '11:00', close: '22:00', days: 'Tue-Sun' },
+        lat: 40.7300,
+        lng: -73.4400,
+        photos: [
+            'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400',
+            'https://images.unsplash.com/photo-1588315029754-2dd089d39a1a?w=400',
+            'https://images.unsplash.com/photo-1593560708920-61dd98c46a4e?w=400'
+        ]
     },
     {
         id: 8,
@@ -89,7 +201,23 @@ const RESTAURANT_DATA = [
         distance: '0.5 miles',
         description: 'Authentic Mexican tacos and burritos. Taco Tuesday specials!',
         image: 'https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=400',
-        address: '888 Route 109, Farmingdale, NY'
+        address: '888 Route 109, Farmingdale, NY',
+        phone: '(516) 555-0108',
+        hours: 'Mon-Sun 10am-10pm',
+        dietaryTags: ['vegetarian', 'gluten-free'],
+        menuHighlights: [
+            { name: 'Street Tacos (3)', price: '$7.99' },
+            { name: 'Burrito Bowl', price: '$9.99' },
+            { name: 'Churros', price: '$3.99' }
+        ],
+        schedule: { open: '10:00', close: '22:00', days: 'Mon-Sun' },
+        lat: 40.7290,
+        lng: -73.4440,
+        photos: [
+            'https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=400',
+            'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=400',
+            'https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=400'
+        ]
     },
     {
         id: 9,
@@ -100,7 +228,23 @@ const RESTAURANT_DATA = [
         distance: '0.3 miles',
         description: 'Fresh, customizable salads and wraps. Healthy eating made easy.',
         image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400',
-        address: '150 College Dr, Farmingdale, NY'
+        address: '150 College Dr, Farmingdale, NY',
+        phone: '(516) 555-0109',
+        hours: 'Mon-Fri 9am-7pm, Sat 10am-5pm',
+        dietaryTags: ['vegetarian', 'vegan', 'gluten-free', 'halal'],
+        menuHighlights: [
+            { name: 'Build Your Own Salad', price: '$10.99' },
+            { name: 'Grilled Chicken Wrap', price: '$9.99' },
+            { name: 'Acai Bowl', price: '$11.99' }
+        ],
+        schedule: { open: '09:00', close: '19:00', days: 'Mon-Fri' },
+        lat: 40.7325,
+        lng: -73.4445,
+        photos: [
+            'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400',
+            'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400',
+            'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400'
+        ]
     },
     {
         id: 10,
@@ -111,7 +255,23 @@ const RESTAURANT_DATA = [
         distance: '0.7 miles',
         description: 'Imported Italian meats and cheeses. The hero sandwiches are legendary.',
         image: 'https://images.unsplash.com/photo-1539252554453-80ab65ce3586?w=400',
-        address: '300 Main St, Farmingdale, NY'
+        address: '300 Main St, Farmingdale, NY',
+        phone: '(516) 555-0110',
+        hours: 'Mon-Sat 9am-7pm',
+        dietaryTags: ['vegetarian'],
+        menuHighlights: [
+            { name: 'Italian Combo Hero', price: '$12.99' },
+            { name: 'Fresh Mozzarella Panini', price: '$10.99' },
+            { name: 'Pasta Salad', price: '$6.99' }
+        ],
+        schedule: { open: '09:00', close: '19:00', days: 'Mon-Sat' },
+        lat: 40.7315,
+        lng: -73.4425,
+        photos: [
+            'https://images.unsplash.com/photo-1539252554453-80ab65ce3586?w=400',
+            'https://images.unsplash.com/photo-1509722747041-616f39b57569?w=400',
+            'https://images.unsplash.com/photo-1481070555726-e2fe8357725c?w=400'
+        ]
     }
 ];
 
