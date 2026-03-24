@@ -289,6 +289,213 @@ const Storage = {
             console.error('Storage.setPreferences: Failed to save preferences:', error.message);
             return false;
         }
+    },
+
+    /**
+     * Gets recent search queries
+     * @returns {string[]} Array of recent search strings
+     */
+    getRecentSearches() {
+        try {
+            const searches = this.get(Constants.STORAGE_KEYS.RECENT_SEARCHES, []);
+            return Array.isArray(searches) ? searches : [];
+        } catch (error) {
+            console.error('Storage.getRecentSearches: Failed:', error.message);
+            return [];
+        }
+    },
+
+    /**
+     * Adds a search query to recent searches
+     * @param {string} query - Search query
+     * @returns {boolean} True if successful
+     */
+    addRecentSearch(query) {
+        if (typeof query !== 'string' || query.trim() === '') {
+            return false;
+        }
+
+        try {
+            let searches = this.getRecentSearches();
+            const trimmed = query.trim();
+            searches = searches.filter(s => s !== trimmed);
+            searches.unshift(trimmed);
+            searches = searches.slice(0, 5);
+            return this.set(Constants.STORAGE_KEYS.RECENT_SEARCHES, searches);
+        } catch (error) {
+            console.error('Storage.addRecentSearch: Failed:', error.message);
+            return false;
+        }
+    },
+
+    /**
+     * Clears recent searches
+     * @returns {boolean} True if successful
+     */
+    clearRecentSearches() {
+        return this.set(Constants.STORAGE_KEYS.RECENT_SEARCHES, []);
+    },
+
+    /**
+     * Gets user note for a restaurant
+     * @param {number} restaurantId - Restaurant ID
+     * @returns {string} Note text or empty string
+     */
+    getNote(restaurantId) {
+        if (typeof restaurantId !== 'number') {
+            return '';
+        }
+
+        try {
+            const notes = this.get(Constants.STORAGE_KEYS.NOTES, {});
+            return (notes && notes[restaurantId]) || '';
+        } catch (error) {
+            console.error('Storage.getNote: Failed:', error.message);
+            return '';
+        }
+    },
+
+    /**
+     * Sets user note for a restaurant
+     * @param {number} restaurantId - Restaurant ID
+     * @param {string} note - Note text
+     * @returns {boolean} True if successful
+     */
+    setNote(restaurantId, note) {
+        if (typeof restaurantId !== 'number' || typeof note !== 'string') {
+            return false;
+        }
+
+        try {
+            const notes = this.get(Constants.STORAGE_KEYS.NOTES, {}) || {};
+            if (note.trim() === '') {
+                delete notes[restaurantId];
+            } else {
+                notes[restaurantId] = note.trim();
+            }
+            return this.set(Constants.STORAGE_KEYS.NOTES, notes);
+        } catch (error) {
+            console.error('Storage.setNote: Failed:', error.message);
+            return false;
+        }
+    },
+
+    /**
+     * Gets visit data for a restaurant
+     * @param {number} restaurantId - Restaurant ID
+     * @returns {Object} Visit object with count and lastVisited
+     */
+    getVisit(restaurantId) {
+        if (typeof restaurantId !== 'number') {
+            return { count: 0, lastVisited: null };
+        }
+
+        try {
+            const visits = this.get(Constants.STORAGE_KEYS.VISITS, {});
+            return (visits && visits[restaurantId]) || { count: 0, lastVisited: null };
+        } catch (error) {
+            console.error('Storage.getVisit: Failed:', error.message);
+            return { count: 0, lastVisited: null };
+        }
+    },
+
+    /**
+     * Marks a restaurant as visited
+     * @param {number} restaurantId - Restaurant ID
+     * @returns {boolean} True if successful
+     */
+    markVisited(restaurantId) {
+        if (typeof restaurantId !== 'number') {
+            return false;
+        }
+
+        try {
+            const visits = this.get(Constants.STORAGE_KEYS.VISITS, {}) || {};
+            const existing = visits[restaurantId] || { count: 0, lastVisited: null };
+            visits[restaurantId] = {
+                count: existing.count + 1,
+                lastVisited: new Date().toISOString()
+            };
+            return this.set(Constants.STORAGE_KEYS.VISITS, visits);
+        } catch (error) {
+            console.error('Storage.markVisited: Failed:', error.message);
+            return false;
+        }
+    },
+
+    /**
+     * Checks if a restaurant has been visited
+     * @param {number} restaurantId - Restaurant ID
+     * @returns {boolean} True if visited
+     */
+    isVisited(restaurantId) {
+        const visit = this.getVisit(restaurantId);
+        return visit.count > 0;
+    },
+
+    /**
+     * Gets the order of favorites for drag and drop
+     * @returns {number[]} Ordered array of favorite IDs
+     */
+    getFavoritesOrder() {
+        try {
+            const order = this.get(Constants.STORAGE_KEYS.FAVORITES_ORDER, []);
+            return Array.isArray(order) ? order : [];
+        } catch (error) {
+            console.error('Storage.getFavoritesOrder: Failed:', error.message);
+            return [];
+        }
+    },
+
+    /**
+     * Sets the order of favorites
+     * @param {number[]} order - Ordered array of favorite IDs
+     * @returns {boolean} True if successful
+     */
+    setFavoritesOrder(order) {
+        if (!Array.isArray(order)) {
+            return false;
+        }
+        return this.set(Constants.STORAGE_KEYS.FAVORITES_ORDER, order);
+    },
+
+    /**
+     * Gets default view settings
+     * @returns {Object} Default view settings
+     */
+    getDefaultView() {
+        const defaults = {
+            defaultSort: 'rating',
+            defaultCategory: 'all',
+            cardsPerRow: 3
+        };
+
+        try {
+            const settings = this.get(Constants.STORAGE_KEYS.DEFAULT_VIEW, defaults);
+            return { ...defaults, ...(settings || {}) };
+        } catch (error) {
+            console.error('Storage.getDefaultView: Failed:', error.message);
+            return defaults;
+        }
+    },
+
+    /**
+     * Sets default view settings
+     * @param {Object} settings - View settings
+     * @returns {boolean} True if successful
+     */
+    setDefaultView(settings) {
+        if (!settings || typeof settings !== 'object') {
+            return false;
+        }
+
+        try {
+            const current = this.getDefaultView();
+            return this.set(Constants.STORAGE_KEYS.DEFAULT_VIEW, { ...current, ...settings });
+        } catch (error) {
+            console.error('Storage.setDefaultView: Failed:', error.message);
+            return false;
+        }
     }
 };
 

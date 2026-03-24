@@ -18,10 +18,15 @@
             <h1>Farmingdale Lunch Guide</h1>
             <p>Find the best lunch spots near Farmingdale State College</p>
         </div>
-        <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">
-            <span class="theme-icon-light">&#9728;</span>
-            <span class="theme-icon-dark">&#9790;</span>
-        </button>
+        <div class="header-actions">
+            <button id="settings-toggle" class="settings-toggle" aria-label="Open settings" title="Settings">
+                &#9881;
+            </button>
+            <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">
+                <span class="theme-icon-light">&#9728;</span>
+                <span class="theme-icon-dark">&#9790;</span>
+            </button>
+        </div>
     </header>
 
     <main id="main-content">
@@ -56,6 +61,31 @@
                     </div>
                 </div>
                 <div class="filter-group">
+                    <label for="dietary-filter">Dietary:</label>
+                    <div class="multi-select-container" id="dietary-container">
+                        <button type="button" class="multi-select-trigger" id="dietary-trigger" aria-haspopup="listbox" aria-expanded="false">
+                            All Dietary
+                        </button>
+                        <div class="multi-select-dropdown hidden" id="dietary-dropdown" role="listbox" aria-multiselectable="true">
+                            <label class="multi-select-option">
+                                <input type="checkbox" value="all" checked> All Dietary
+                            </label>
+                            <label class="multi-select-option">
+                                <input type="checkbox" value="vegetarian"> Vegetarian
+                            </label>
+                            <label class="multi-select-option">
+                                <input type="checkbox" value="vegan"> Vegan
+                            </label>
+                            <label class="multi-select-option">
+                                <input type="checkbox" value="halal"> Halal
+                            </label>
+                            <label class="multi-select-option">
+                                <input type="checkbox" value="gluten-free"> Gluten-Free
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="filter-group">
                     <label for="price-filter">Price Range:</label>
                     <select id="price-filter">
                         <option value="all">All Prices</option>
@@ -78,9 +108,29 @@
             <div class="filter-row">
                 <div class="filter-group search-group">
                     <label for="search-input">Search:</label>
-                    <input type="text" id="search-input" placeholder="Search restaurants..." aria-label="Search restaurants">
+                    <div class="search-wrapper">
+                        <input type="text" id="search-input" placeholder="Search restaurants..." aria-label="Search restaurants" autocomplete="off">
+                        <div id="recent-searches-dropdown" class="recent-searches-dropdown hidden" role="listbox"></div>
+                    </div>
+                </div>
+                <div class="filter-group toggle-group">
+                    <label class="toggle-label">
+                        <input type="checkbox" id="open-now-toggle">
+                        <span class="toggle-switch"></span>
+                        Open Now
+                    </label>
+                </div>
+                <div class="filter-group distance-group">
+                    <label for="distance-slider">Max Distance: <span id="distance-value">2.0</span> mi</label>
+                    <input type="range" id="distance-slider" min="0.1" max="2.0" step="0.1" value="2.0" aria-label="Maximum distance">
                 </div>
             </div>
+        </section>
+
+        <!-- Results info and active filters -->
+        <section id="results-info" class="results-info" aria-live="polite">
+            <span id="results-count"></span>
+            <div id="active-filters" class="active-filters"></div>
         </section>
 
         <section id="error-display" class="hidden" role="alert">
@@ -89,16 +139,39 @@
         </section>
 
         <section id="loading" class="hidden" aria-label="Loading">
-            <div class="spinner" role="status" aria-label="Loading restaurants"></div>
-            <p>Loading restaurants...</p>
+            <div class="skeleton-grid">
+                <div class="skeleton-card"><div class="skeleton-image"></div><div class="skeleton-text"></div><div class="skeleton-text short"></div></div>
+                <div class="skeleton-card"><div class="skeleton-image"></div><div class="skeleton-text"></div><div class="skeleton-text short"></div></div>
+                <div class="skeleton-card"><div class="skeleton-image"></div><div class="skeleton-text"></div><div class="skeleton-text short"></div></div>
+                <div class="skeleton-card"><div class="skeleton-image"></div><div class="skeleton-text"></div><div class="skeleton-text short"></div></div>
+                <div class="skeleton-card"><div class="skeleton-image"></div><div class="skeleton-text"></div><div class="skeleton-text short"></div></div>
+                <div class="skeleton-card"><div class="skeleton-image"></div><div class="skeleton-text"></div><div class="skeleton-text short"></div></div>
+            </div>
         </section>
 
         <section id="restaurants-container" aria-label="Restaurant listings" role="list">
             <!-- Restaurants will be dynamically loaded here -->
         </section>
 
+        <!-- Load More / Pagination sentinel -->
+        <div id="load-more-sentinel" class="load-more-sentinel hidden">
+            <button id="load-more-btn" class="load-more-btn">Load More Restaurants</button>
+        </div>
+
+        <!-- Comparison Panel -->
+        <section id="comparison-panel" class="comparison-panel hidden" aria-label="Compare restaurants">
+            <div class="comparison-header">
+                <h3>Compare Restaurants <span id="compare-count">(0/3)</span></h3>
+                <button id="clear-compare" class="clear-compare-btn" aria-label="Clear comparison">Clear</button>
+            </div>
+            <div id="comparison-content" class="comparison-content"></div>
+        </section>
+
         <section id="favorites-section" aria-label="Your favorite restaurants">
-            <h2>Your Favorites</h2>
+            <div class="favorites-header">
+                <h2>Your Favorites</h2>
+                <button id="export-favorites-btn" class="export-favorites-btn" aria-label="Export favorites" title="Print favorites">&#128424; Export</button>
+            </div>
             <div id="favorites-container">
                 <p class="empty-favorites">No favorites yet. Click the heart icon to add!</p>
             </div>
@@ -112,29 +185,107 @@
             <button class="modal-close" aria-label="Close modal">&times;</button>
             <div class="modal-body">
                 <img class="modal-image" src="" alt="" loading="lazy">
+                <div class="modal-photo-gallery"></div>
                 <div class="modal-info">
                     <h2 id="modal-title" class="modal-name"></h2>
                     <div class="modal-meta">
                         <span class="modal-category"></span>
                         <span class="modal-price"></span>
                         <span class="modal-rating"></span>
+                        <span class="modal-status"></span>
                     </div>
+                    <div class="modal-dietary-tags"></div>
                     <p class="modal-description"></p>
+                    <div class="modal-menu-highlights">
+                        <h4>Popular Items</h4>
+                        <ul class="menu-list"></ul>
+                    </div>
                     <div class="modal-details">
                         <p class="modal-address"><strong>Address:</strong> <span></span></p>
                         <p class="modal-distance"><strong>Distance:</strong> <span></span></p>
+                        <p class="modal-walk-time"><strong>Walking Time:</strong> <span></span></p>
                         <p class="modal-phone"><strong>Phone:</strong> <span></span></p>
                         <p class="modal-hours"><strong>Hours:</strong> <span></span></p>
+                    </div>
+                    <div class="modal-note">
+                        <h4>Your Note</h4>
+                        <textarea class="modal-note-input" placeholder="Add a personal note..." rows="2" maxlength="500"></textarea>
+                        <button class="modal-save-note-btn">Save Note</button>
                     </div>
                     <div class="modal-actions">
                         <button class="modal-favorite-btn" aria-label="Add to favorites">
                             <span class="heart-icon">&#9825;</span> Add to Favorites
                         </button>
+                        <button class="modal-visited-btn" aria-label="Mark as visited">
+                            &#10003; Mark Visited
+                        </button>
+                        <button class="modal-share-btn" aria-label="Share restaurant">
+                            &#8599; Share
+                        </button>
+                        <a class="modal-directions-btn" href="#" target="_blank" rel="noopener noreferrer" aria-label="Get directions">
+                            &#128204; Get Directions
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Settings Panel -->
+    <div id="settings-panel" class="settings-panel hidden" role="dialog" aria-label="Settings">
+        <div class="settings-overlay"></div>
+        <div class="settings-content">
+            <div class="settings-header">
+                <h3>Settings</h3>
+                <button id="settings-close" class="modal-close" aria-label="Close settings">&times;</button>
+            </div>
+            <div class="settings-body">
+                <div class="setting-item">
+                    <label for="default-sort">Default Sort:</label>
+                    <select id="default-sort">
+                        <option value="rating">Highest Rated</option>
+                        <option value="distance">Nearest</option>
+                        <option value="price-low">Price: Low to High</option>
+                        <option value="price-high">Price: High to Low</option>
+                        <option value="name">Name (A-Z)</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label for="default-category">Default Category:</label>
+                    <select id="default-category">
+                        <option value="all">All Categories</option>
+                        <option value="pizza">Pizza</option>
+                        <option value="deli">Deli</option>
+                        <option value="asian">Asian</option>
+                        <option value="fast-food">Fast Food</option>
+                        <option value="cafe">Cafe</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <button id="save-settings-btn" class="save-settings-btn">Save Settings</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Keyboard Shortcuts Help -->
+    <div id="shortcuts-modal" class="modal hidden" role="dialog" aria-label="Keyboard shortcuts">
+        <div class="modal-overlay"></div>
+        <div class="shortcuts-content">
+            <h3>Keyboard Shortcuts</h3>
+            <ul class="shortcuts-list">
+                <li><kbd>/</kbd> Focus search</li>
+                <li><kbd>Escape</kbd> Clear search / close modal</li>
+                <li><kbd>d</kbd> Toggle dark mode</li>
+                <li><kbd>f</kbd> Toggle favorites</li>
+                <li><kbd>?</kbd> Show shortcuts</li>
+            </ul>
+            <button class="shortcuts-close-btn">Close</button>
+        </div>
+    </div>
+
+    <!-- Back to Top Button -->
+    <button id="back-to-top" class="back-to-top hidden" aria-label="Back to top" title="Back to top">&#8679;</button>
 
     <footer>
         <p>&copy; 2024 Farmingdale Lunch Guide | <a href="#main-content">Back to top</a></p>

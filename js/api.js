@@ -309,6 +309,42 @@ const Api = {
     },
 
     /**
+     * Filters restaurants by dietary tags
+     * @param {string[]} tags - Array of dietary tag values
+     * @param {Object[]} restaurants - Array of restaurants to filter
+     * @returns {Object[]} Filtered array of restaurants
+     */
+    filterByDietary(tags, restaurants) {
+        try {
+            if (!Array.isArray(restaurants)) {
+                console.error('Api.filterByDietary: Invalid restaurants array');
+                return [];
+            }
+
+            if (!Array.isArray(tags) || tags.length === 0 || tags.includes('all')) {
+                return restaurants;
+            }
+
+            return restaurants.filter(restaurant => {
+                try {
+                    if (!Array.isArray(restaurant.dietaryTags)) {
+                        return false;
+                    }
+                    return tags.some(tag =>
+                        restaurant.dietaryTags.includes(tag.toLowerCase())
+                    );
+                } catch (error) {
+                    console.warn('Api.filterByDietary: Error filtering restaurant:', error);
+                    return false;
+                }
+            });
+        } catch (error) {
+            console.error('Api.filterByDietary: Filter failed:', error);
+            return [];
+        }
+    },
+
+    /**
      * Checks if an error code is retryable
      * @param {string} errorCode - Error code
      * @returns {boolean} True if error is retryable
