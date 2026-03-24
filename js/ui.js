@@ -11,6 +11,9 @@ const UI = {
     // Current modal restaurant
     currentModalRestaurant: null,
 
+    // Bound modal keydown handler (stable reference for add/removeEventListener)
+    _boundHandleModalKeydown: null,
+
     /**
      * Initializes UI by caching DOM element references
      * @returns {boolean} True if initialization successful
@@ -377,7 +380,10 @@ const UI = {
                 this.elements.modalClose.focus();
             }
 
-            this.elements.modal.addEventListener('keydown', this.handleModalKeydown.bind(this));
+            if (!this._boundHandleModalKeydown) {
+                this._boundHandleModalKeydown = this.handleModalKeydown.bind(this);
+            }
+            this.elements.modal.addEventListener('keydown', this._boundHandleModalKeydown);
 
         } catch (error) {
             console.error('UI.openModal: Failed to open modal:', error.message);
@@ -397,7 +403,9 @@ const UI = {
             document.body.style.overflow = '';
             this.currentModalRestaurant = null;
 
-            this.elements.modal.removeEventListener('keydown', this.handleModalKeydown.bind(this));
+            if (this._boundHandleModalKeydown) {
+                this.elements.modal.removeEventListener('keydown', this._boundHandleModalKeydown);
+            }
 
         } catch (error) {
             console.error('UI.closeModal: Failed to close modal:', error.message);
