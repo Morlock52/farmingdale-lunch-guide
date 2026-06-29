@@ -4,18 +4,35 @@ A web-based restaurant discovery application designed for students at Farmingdal
 
 ## Features
 
-- **Restaurant Browsing**: View 10+ local restaurants with details including ratings, prices, and descriptions
-- **Category Filtering**: Filter by cuisine type (Pizza, Deli, Asian, Fast Food, Cafe)
+### Discovery & filtering
+- **Restaurant Browsing**: View 10+ local restaurants with ratings, prices, dietary tags, and live open/closed status
+- **Category Filtering**: Multi-select by cuisine type (Pizza, Deli, Asian, Fast Food, Cafe)
+- **Dietary Filtering**: Multi-select by dietary need (Vegetarian, Vegan, Halal, Gluten-Free)
 - **Price Filtering**: Filter by price range ($, $$, $$$)
-- **Multi-Category Selection**: Select multiple categories simultaneously
+- **Open Now**: Toggle to show only restaurants currently open (schedule-aware)
+- **Max Distance**: Slider to limit results by walking distance
 - **Sorting Options**: Sort by rating, distance, price, or name
-- **Search**: Real-time search across restaurant names, categories, and descriptions
-- **Favorites**: Save your favorite restaurants with persistent localStorage
+- **Search**: Real-time, debounced search with a recent-searches dropdown
+- **Active Filters**: Result count plus removable filter chips ("clear all" included)
+- **Load More**: Paginated results for faster initial render
+
+### Details, comparison & saving
+- **Detail Modal**: Photo gallery, menu highlights, dietary tags, open status, walking time, address, phone, hours
+- **Personal Notes**: Save a private note per restaurant
+- **Visit Tracking**: Mark restaurants visited and see your visit count
+- **Share & Directions**: Web Share / clipboard fallback and one-tap Google Maps directions
+- **Compare**: Compare up to 3 restaurants side by side
+- **Favorites**: Save favorites (persistent localStorage) and export/print them
+- **Settings**: Configure a default sort and category
+
+### Experience
 - **Dark Mode**: Toggle between light and dark themes
+- **Keyboard Shortcuts**: `/` focus search, `Esc` clear/close, `d` dark mode, `f` favorites, `?` help
+- **Back to Top**: Floating button appears as you scroll
 - **Toast Notifications**: Non-blocking feedback for user actions
 - **Responsive Design**: Works on desktop and mobile devices
-- **Offline Support**: Service worker caches assets for offline access
-- **Lazy Loading**: Images load on-demand for better performance
+- **Installable PWA**: Web app manifest plus a service worker for offline access
+- **Skeleton Loading & Lazy Images**: Smooth perceived performance
 - **Accessibility**: Keyboard navigation, skip links, and ARIA labels
 
 ## Getting Started
@@ -50,6 +67,8 @@ A web-based restaurant discovery application designed for students at Farmingdal
 ```
 farmingdale-lunch-guide/
 ├── index.html              # Main HTML file
+├── manifest.json           # PWA web app manifest
+├── sw.js                   # Service worker (offline caching)
 ├── css/
 │   └── styles.css          # Responsive styling with CSS Grid
 ├── js/
@@ -67,6 +86,7 @@ farmingdale-lunch-guide/
 │   ├── utils.test.js       # Unit tests for utilities
 │   ├── storage.test.js     # Unit tests for storage
 │   ├── api.test.js         # Unit tests for API
+│   ├── features.test.js    # Unit tests for enhanced feature logic
 │   └── e2e/
 │       └── app.spec.js     # End-to-end tests
 ├── package.json            # npm configuration

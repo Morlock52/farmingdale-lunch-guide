@@ -17,8 +17,12 @@ test.describe('Farmingdale Lunch Guide', () => {
             await expect(header).toHaveText('Farmingdale Lunch Guide');
         });
 
-        test('should load restaurants', async ({ page }) => {
+        test('should load restaurants (paginated)', async ({ page }) => {
             const cards = page.locator('.restaurant-card');
+            // First page renders PAGE_SIZE (6) cards...
+            await expect(cards).toHaveCount(6);
+            // ...and the remaining restaurants load on demand.
+            await page.click('#load-more-btn');
             await expect(cards).toHaveCount(10);
         });
 
@@ -193,7 +197,7 @@ test.describe('Farmingdale Lunch Guide', () => {
             const firstCard = page.locator('.restaurant-card').first();
             await firstCard.click();
 
-            const closeBtn = page.locator('.modal-close');
+            const closeBtn = page.locator('#restaurant-modal .modal-close');
             await closeBtn.click();
 
             const modal = page.locator('#restaurant-modal');
@@ -204,8 +208,10 @@ test.describe('Farmingdale Lunch Guide', () => {
             const firstCard = page.locator('.restaurant-card').first();
             await firstCard.click();
 
-            const overlay = page.locator('.modal-overlay');
-            await overlay.click({ force: true });
+            // Click an actual backdrop location (top-left corner), not the
+            // centre, which is legitimately covered by the content card.
+            const overlay = page.locator('#restaurant-modal .modal-overlay');
+            await overlay.click({ position: { x: 5, y: 5 } });
 
             const modal = page.locator('#restaurant-modal');
             await expect(modal).toHaveClass(/hidden/);
@@ -269,12 +275,10 @@ test.describe('Farmingdale Lunch Guide', () => {
         });
 
         test('restaurant cards should be keyboard accessible', async ({ page }) => {
-            // Tab to first card
-            await page.keyboard.press('Tab'); // Skip link
-            await page.keyboard.press('Tab'); // Theme toggle
-            await page.keyboard.press('Tab'); // First card
-
+            // Cards expose a tabindex and open on Enter/Space. Focus the first
+            // card directly (tab order depends on the filter controls above it).
             const firstCard = page.locator('.restaurant-card').first();
+            await firstCard.focus();
             await expect(firstCard).toBeFocused();
 
             // Open modal with Enter

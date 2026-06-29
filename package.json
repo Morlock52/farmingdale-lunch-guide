@@ -1,6 +1,6 @@
 {
   "name": "farmingdale-lunch-guide",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A web-based restaurant discovery application for Farmingdale State College students",
   "main": "js/app.js",
   "scripts": {
@@ -33,7 +33,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/farmingdale/lunch-guide"
+    "url": "https://github.com/morlock52/farmingdale-lunch-guide"
   },
   "engines": {
     "node": ">=18.0.0"

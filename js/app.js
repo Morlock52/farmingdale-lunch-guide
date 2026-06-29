@@ -132,13 +132,21 @@ const App = {
     loadPreferences() {
         try {
             const preferences = Storage.getPreferences();
+            const defaultView = Storage.getDefaultView();
+
+            // Saved per-session filters take precedence; otherwise fall back to
+            // the user's configured defaults from the settings panel.
+            const sortBy = preferences.sortBy || defaultView.defaultSort;
+            if (sortBy) {
+                UI.setFilterValue('sortSelect', sortBy);
+            }
 
             if (preferences.priceFilter) {
                 UI.setFilterValue('priceFilter', preferences.priceFilter);
             }
 
-            if (preferences.sortBy) {
-                UI.setFilterValue('sortSelect', preferences.sortBy);
+            if (defaultView.defaultCategory && defaultView.defaultCategory !== 'all') {
+                UI.applyDefaultCategory(defaultView.defaultCategory);
             }
 
             console.info('App.loadPreferences: Preferences loaded');
@@ -246,9 +254,24 @@ const App = {
                 filtered = this.filterByMultipleCategories(filters.categories, filtered);
             }
 
+            // Apply dietary filter
+            if (filters.dietary && !filters.dietary.includes('all')) {
+                filtered = Api.filterByDietary(filters.dietary, filtered);
+            }
+
             // Apply price filter
             if (filters.price && filters.price !== 'all') {
                 filtered = Api.filterByPrice(filters.price, filtered);
+            }
+
+            // Apply "open now" filter
+            if (filters.openNow) {
+                filtered = filtered.filter(r => Utils.isOpenNow(r.schedule));
+            }
+
+            // Apply max distance filter
+            if (typeof filters.maxDistance === 'number' && isFinite(filters.maxDistance)) {
+                filtered = filtered.filter(r => Utils.parseDistance(r.distance) <= filters.maxDistance);
             }
 
             // Apply search filter
@@ -268,6 +291,7 @@ const App = {
 
             // Render filtered results
             UI.renderRestaurants(filtered);
+            UI.updateResultsInfo(filtered.length, this.state.restaurants.length, filters);
 
             console.info(`App.applyFilters: Showing ${filtered.length} of ${this.state.restaurants.length} restaurants`);
 
